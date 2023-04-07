@@ -73,6 +73,9 @@ overrideWarningsEnabled=false npx cdk deploy\
  --parameters DeployDemoUIParameter=Yes\
   --parameters SourceBucketsParameter=<MY_BUCKET>\
    --profile <PROFILE_NAME>
+
+#Soto Gubeng:
+overrideWarningsEnabled=false npx cdk deploy --parameters DeployDemoUIParameter=Yes --parameters AutoWebPParameter=Yes  --parameters SourceBucketsParameter=image-sotogubeng-com --parameters RecordNameParameter=image --parameters ZoneNameParameter=sotogubeng.com --parameters HostedZoneIdParameter=Z05940171Z8WQNZ6S7GPP
 ```
 
 _Note:_

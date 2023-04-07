@@ -21,7 +21,7 @@ import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { IBucket } from "aws-cdk-lib/aws-s3";
-import { ArnFormat, Aws, Duration, Lazy, Stack } from "aws-cdk-lib";
+import { ArnFormat, Aws, aws_certificatemanager as acm, aws_route53 as route53, aws_route53_targets as targets, aws_ssm as ssm, Duration, Lazy, Stack } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { CloudFrontToApiGatewayToLambda } from "@aws-solutions-constructs/aws-cloudfront-apigateway-lambda";
 
@@ -35,6 +35,9 @@ export interface BackEndProps extends SolutionConstructProps {
   readonly logsBucket: IBucket;
   readonly uuid: string;
   readonly cloudFrontPriceClass: string;
+  readonly hostedZoneId: string;
+  readonly zoneName: string;
+  readonly recordName: string;
 }
 
 export class BackEnd extends Construct {
@@ -165,6 +168,9 @@ export class BackEnd extends Construct {
       originSslProtocols: [OriginSslPolicy.TLS_V1_1, OriginSslPolicy.TLS_V1_2],
     });
 
+    const certificateUsEastArn = ssm.StringParameter.fromStringParameterName(this, 'certificateUsEastArn', '/idn/popbela/certificateUsEastArn').stringValue;
+    const certificateUsEast = acm.Certificate.fromCertificateArn(this, "certificateUsEast", certificateUsEastArn);
+
     const cloudFrontDistributionProps: DistributionProps = {
       comment: "Image Handler Distribution for Serverless Image Handler",
       defaultBehavior: {
@@ -185,6 +191,8 @@ export class BackEnd extends Construct {
         { httpStatus: 503, ttl: Duration.minutes(10) },
         { httpStatus: 504, ttl: Duration.minutes(10) },
       ],
+      domainNames: [`${props.recordName}.${props.zoneName}`],
+      certificate: certificateUsEast,
     };
 
     const logGroupProps = {
@@ -210,6 +218,19 @@ export class BackEnd extends Construct {
         apiGatewayProps,
       }
     );
+
+    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+      hostedZoneId: props.hostedZoneId,
+      zoneName: props.zoneName,
+    });
+
+    new route53.ARecord(this, 'AliasRecord', {
+      recordName: props.recordName,
+      zone: hostedZone,
+      target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(imageHandlerCloudFrontApiGatewayLambda.cloudFrontWebDistribution)),
+    });
+
+
 
     imageHandlerCloudFrontApiGatewayLambda.apiGateway.node.tryRemoveChild("Endpoint"); // we don't need the RestApi endpoint in the outputs
 

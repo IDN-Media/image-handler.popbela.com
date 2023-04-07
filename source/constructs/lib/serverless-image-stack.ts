@@ -130,6 +130,24 @@ export class ServerlessImageHandlerStack extends Stack {
       default: PriceClass.PRICE_CLASS_ALL,
     });
 
+    const hostedZoneIdParameter = new CfnParameter(this, "HostedZoneIdParameter", {
+      type: "String",
+      description: "Route 53 hosted zone ID",
+      default: ""
+    });
+
+    const recordNameParameter = new CfnParameter(this, "RecordNameParameter", {
+      type: "String",
+      description: "Route 53 record name",
+      default: ""
+    });
+
+    const zoneNameParameter = new CfnParameter(this, "ZoneNameParameter", {
+      type: "String",
+      description: "Route 53 zone name",
+      default: ""
+    });
+
     const solutionMapping = new CfnMapping(this, "Solution", {
       mapping: {
         Config: {
@@ -177,6 +195,9 @@ export class ServerlessImageHandlerStack extends Stack {
       logsBucket: commonResources.logsBucket,
       uuid: commonResources.customResources.uuid,
       cloudFrontPriceClass: cloudFrontPriceClassParameter.valueAsString,
+      hostedZoneId: hostedZoneIdParameter.valueAsString,
+      zoneName: zoneNameParameter.valueAsString,
+      recordName: recordNameParameter.valueAsString,
       ...solutionConstructProps,
     });
 
