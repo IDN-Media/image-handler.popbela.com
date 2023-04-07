@@ -74,7 +74,7 @@ overrideWarningsEnabled=false npx cdk deploy\
   --parameters SourceBucketsParameter=<MY_BUCKET>\
    --profile <PROFILE_NAME>
 
-#Soto Gubeng:
+#sotogubeng.com (popbela beta env):
 overrideWarningsEnabled=false npx cdk deploy \
  --parameters DeployDemoUIParameter=Yes \
  --parameters AutoWebPParameter=Yes \
